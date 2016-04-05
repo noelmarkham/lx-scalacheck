@@ -10,7 +10,7 @@ import Yahtzee._
 
 object YahtzeeProperties extends Properties("Yahtzee Properties") with YahtzeeTestDomain {
 
-  property("Winning hand is chosen properly") = forAll(chooseNum[Int](1, orderedGenerators.length - 1)) { idx =>
+  property("Winning hand is chosen correctly") = forAll(chooseNum[Int](1, orderedGenerators.length - 1)) { idx =>
 
     val (winningHandGenerator, losingHandGenerator) = {
       if(idx == 1) (genYahtzee, oneOf(genStraight, genFullHouse, genFourOfAKind, genThreeOfAKind))
@@ -27,7 +27,7 @@ object YahtzeeProperties extends Properties("Yahtzee Properties") with YahtzeeTe
     }
   }
 
-  property("Winning hand is chosen properly with stats") = forAll(chooseNum[Int](1, orderedGenerators.length - 1)) { idx =>
+  property("Winning hand is chosen correctly with stats") = forAll(chooseNum[Int](1, orderedGenerators.length - 1)) { idx =>
     val (winningHandGenerator, losingHandGenerator) = {
       if(idx == 1) (genYahtzee, oneOf(genStraight, genFullHouse, genFourOfAKind, genThreeOfAKind))
       else if (idx == orderedGenerators.length - 1) (oneOf(genYahtzee, genStraight, genFullHouse, genFourOfAKind), genThreeOfAKind)
