@@ -27,7 +27,7 @@ object Yahtzee {
       val grouped: Map[Die, Int] = diceList.groupBy(identity).map{case (k, v) => (k, v.length)}
       val valueSet = grouped.values.toSet
 
-      if(valueSet.size == 1) Yahtzee
+      if(diceList.distinct.size == 1) Yahtzee
       else if(diceSet == Set(One, Two, Three, Four, Five) || diceSet == Set(Two, Three, Four, Five, Six)) Straight
       else if(valueSet.contains(4)) FourOfAKind
       else if(valueSet == Set(3, 2)) FullHouse
@@ -36,5 +36,7 @@ object Yahtzee {
     }
   }
 
-  def winner(h1: Hand, h2: Hand): Hand = if(h1.score.value >= h2.score.value) h1 else h2
+  def winner(h1: Hand, h2: Hand): Hand = {
+    if(h1.score.value >= h2.score.value) h1 else h2
+  }
 }

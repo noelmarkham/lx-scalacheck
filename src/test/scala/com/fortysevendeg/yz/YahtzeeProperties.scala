@@ -10,15 +10,38 @@ import Yahtzee._
 
 object YahtzeeProperties extends Properties("Yahtzee Properties") with YahtzeeTestDomain {
 
-  property("Winning hand is chosen properly") = forAll(chooseNum[Int](2, orderedGenerators.length - 2)) { idx =>
-    val (wg1 :: wg2 :: wgn, lg1 :: lg2 :: lgn) = orderedGenerators.splitAt(idx)
+  property("Winning hand is chosen properly") = forAll(chooseNum[Int](1, orderedGenerators.length - 1)) { idx =>
 
-    val winningHandGenerator = oneOf(wg1, wg2, wgn: _*)
-    val losingHandGenerator = oneOf(lg1, lg2, lgn: _*)
+    val (winningHandGenerator, losingHandGenerator) = {
+      if(idx == 1) (genYahtzee, oneOf(genStraight, genFullHouse, genFourOfAKind, genThreeOfAKind))
+      else if (idx == orderedGenerators.length - 1) (oneOf(genYahtzee, genStraight, genFullHouse, genFourOfAKind), genThreeOfAKind)
+      else {
+        val (wg1 :: wg2 :: wgn, lg1 :: lg2 :: lgn) = orderedGenerators.splitAt(idx)
+        (oneOf(wg1, wg2, wgn: _*), oneOf(lg1, lg2, lgn: _*))
+      }
+    }
 
     forAll(winningHandGenerator, losingHandGenerator) { (winningHand, losingHand) =>
       (winner(winningHand, losingHand) ?= winningHand) &&
       (winner(losingHand, winningHand) ?= winningHand)
+    }
+  }
+
+  property("Winning hand is chosen properly with stats") = forAll(chooseNum[Int](1, orderedGenerators.length - 1)) { idx =>
+    val (winningHandGenerator, losingHandGenerator) = {
+      if(idx == 1) (genYahtzee, oneOf(genStraight, genFullHouse, genFourOfAKind, genThreeOfAKind))
+      else if (idx == orderedGenerators.length - 1) (oneOf(genYahtzee, genStraight, genFullHouse, genFourOfAKind), genThreeOfAKind)
+      else {
+        val (wg1 :: wg2 :: wgn, lg1 :: lg2 :: lgn) = orderedGenerators.splitAt(idx)
+        (oneOf(wg1, wg2, wgn: _*), oneOf(lg1, lg2, lgn: _*))
+      }
+    }
+
+    forAll(winningHandGenerator, losingHandGenerator) { (winningHand, losingHand) =>
+      collect(s"${winningHand.score} vs ${losingHand.score}") {
+        (winner(winningHand, losingHand) ?= winningHand) &&
+        (winner(losingHand, winningHand) ?= winningHand)
+      }
     }
   }
 
