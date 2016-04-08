@@ -17,12 +17,17 @@ object ExampleProperties extends Properties("Example Properties") {
     l1.length < (l1 ::: l2).length
   }
 
+  property("Fixed: List concatenation") = forAll(nonEmptyListOf(arbitrary[Int]), nonEmptyListOf(arbitrary[Int])) { (l1, l2) =>
+    l1.length < (l1 ::: l2).length    
+  }
+
+/*
   property("Fixed: List concatenation") = forAll { (l1: List[Int], l2: List[Int]) =>
     (l1.length > 0 && l2.length > 0) ==> {
       l1.length < (l1 ::: l2).length
     }
   }
-
+ */
   def brokenReverse[X](xs: List[X]): List[X] = if (xs.length > 4) xs else xs.reverse
 
   property("Failing: Broken reverse") = forAll { (xs: List[Int]) => xs.length > 0 ==>
@@ -33,10 +38,15 @@ object ExampleProperties extends Properties("Example Properties") {
     Math.abs(x) >= 0
   }
 
+  property("Fixed: Math.abs") = forAll { x: Int =>
+    x > Integer.MIN_VALUE ==>
+    Math.abs(x) >= 0
+  }
+/*
   property("Fixed: Math.abs") = forAll(Gen.posNum[Int]) { x =>
     Math.abs(x) >= 0
   }
-
+ */
   property("Failing: Three positive integers") = forAll { (i1: Int, i2: Int, i3: Int) =>
     (i1 > 0 && i2 > 0 && i3 > 0) ==> {
 
@@ -75,6 +85,19 @@ object ExampleProperties extends Properties("Example Properties") {
 
   property("Using created arbitrary") = forAll { r: Record =>
     passed
+  }
+
+
+  def genPick[A, B](implicit aa: Arbitrary[A], ab: Arbitrary[B]): Gen[(Map[A, B], List[A], List[A])] = for {
+    pairs <- arbitrary[Map[A, B]]
+    keys = pairs.keySet
+    validPicks <- someOf(keys)
+    anotherList <- listOf(arbitrary[A])
+    invalidPicks = anotherList.filterNot(i => keys.contains(i))
+  } yield (pairs, validPicks.toList, invalidPicks)
+
+  property("Using genPick") = forAll(genPick[Int, String]) { case (mapping, succs, fails) =>
+    succs.forall(s => mapping.get(s).isDefined) && fails.forall(f => mapping.get(f).isEmpty)
   }
 }
 
